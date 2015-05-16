@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="4e86306289ace4aa0cfec44a05ed2b410d36989d">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-171df99ec991a6c4e7de28e9c9b4530ea5f0c643.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.github.amlcurran.showcaseview/library/5.0.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="8b3d9a7b348d8bcfb4d740dfaf70bc374cdae9d6">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-90a49093795d1bc898e739063bbf0f8b9c928269.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/CastCompanionLibrary-debug/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="69dc0f4edfcda64020ab9f918efe2928f3a81a32">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-f8db560e1efb42d1b093ea136f02b51e8e549002.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/cardview-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="11842de6a309c447b3a3d60d73ad637a87c58994">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-d8f1dcf778d90ea26df3c26eb2e684363e2ed10c.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.github.amlcurran.showcaseview/library/5.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="8b3d9a7b348d8bcfb4d740dfaf70bc374cdae9d6">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-90a49093795d1bc898e739063bbf0f8b9c928269.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="4c93d99d454c975536bbe3b42283eee847f03ea3">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-201c2d3d8058f9eac33906c2d3d786a254c6c002.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/22.0.0/libs/internal_impl-22.0.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="ba3df4eb0a630d7de294f0e48d3f9267d279b784">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/internal_impl-22.0.0-d08dc1d9379e52fcf4a079331044e1019859905b.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/support-v4/22.0.0/libs/internal_impl-22.0.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="b5b92f469d515a13d778900f6d50c03d12f35504">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/internal_impl-22.0.0-3c008f0731c0a50179e2dfc5d98f676936bcf5a8.jar" />
+    </item>
+    <item
+        jar="/opt/tools/sdk/extras/android/m2repository/com/android/support/support-annotations/22.0.0/support-annotations-22.0.0.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="685d0b2c590447e85284ed84712cb363ba04eff8">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/support-annotations-22.0.0-d21ef6632ef5f40332edfc3574ba6a28a5a89366.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.github.amlcurran.showcaseview/library/5.0.0/classes.jar"
+        jumboMode="false"
+        revision="21.1.1"
+        sha1="8b3d9a7b348d8bcfb4d740dfaf70bc374cdae9d6">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-90a49093795d1bc898e739063bbf0f8b9c928269.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/CastCompanionLibrary-debug/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="aa8785edb9046d76d7bf20f925ae6d4e3907f61c">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-f8db560e1efb42d1b093ea136f02b51e8e549002.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/mediarouter-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="a1372c17fccacca753d3951d3ad820571cbce075">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-e28de1d1b16d48120da6772b7bfb1c149bd89e00.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/CastCompanionLibrary-debug/classes.jar"
+        jumboMode="false"
+        revision="21.1.1"
+        sha1="de69f1891e3fd542b226088a859912aceb543caa">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-f8db560e1efb42d1b093ea136f02b51e8e549002.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.google.android.gms/play-services-cast/7.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="4cd0b093824b3228fffc21ea369b98d0b1db6566">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-3f02b37fd41600b073bcbe257d1e238a8f2536ef.jar" />
+    </item>
+    <item
+        jar="/home/mangini/uamp/uamp/mobile/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.0.0/classes.jar"
+        jumboMode="false"
+        revision="22.0.0"
+        sha1="d84409890828e07d344a3b9b1da545dba9897b51">
+        <dex dex="/home/mangini/uamp/uamp/mobile/build/intermediates/pre-dexed/debug/classes-99d7bbe70d9746face05a5c8006f854227f1ded0.jar" />
+    </item>
+
+</items>
