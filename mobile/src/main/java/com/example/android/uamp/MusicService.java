@@ -28,7 +28,7 @@ package com.example.android.uamp;
  import android.os.SystemClock;
  import android.service.media.MediaBrowserService;
 
- import com.example.android.uamp.ui.NowPlayingActivity;
+ import com.example.android.uamp.ui.MusicPlayerActivity;
  import com.example.android.uamp.utils.LogHelper;
 
  import java.lang.ref.WeakReference;
@@ -92,8 +92,6 @@ package com.example.android.uamp;
  */
 public class MusicService extends MediaBrowserService implements PlaybackManager.Callback {
 
-    // Extra on MediaSession that contains the Cast device name currently connected to
-    public static final String EXTRA_CONNECTED_CAST = "com.example.android.uamp.CAST_NAME";
     // The action of the incoming Intent indicating that it contains a command
     // to be executed (see {@link #onStartCommand})
     public static final String ACTION_CMD = "com.example.android.uamp.ACTION_CMD";
@@ -103,9 +101,6 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
     // A value of a CMD_NAME key in the extras of the incoming Intent that
     // indicates that the music playback should be paused (see {@link #onStartCommand})
     public static final String CMD_PAUSE = "CMD_PAUSE";
-    // A value of a CMD_NAME key that indicates that the music playback should switch
-    // to local playback from cast playback.
-    public static final String CMD_STOP_CASTING = "CMD_STOP_CASTING";
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
@@ -141,7 +136,7 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
         mPlayback.start();
 
         Context context = getApplicationContext();
-        Intent intent = new Intent(context, NowPlayingActivity.class);
+        Intent intent = new Intent(context, MusicPlayerActivity.class);
         PendingIntent pi = PendingIntent.getActivity(context, 99 /*request code*/,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mSession.setSessionActivity(pi);
@@ -187,7 +182,7 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
 
     @Override
     public void onLoadChildren(final String parentMediaId, final Result<List<MediaItem>> result) {
-        result.sendResult(MusicLibrary.getMusic(this, parentMediaId));
+        result.sendResult(MusicLibrary.getMediaItems());
     }
 
     private final class MediaSessionCallback extends MediaSession.Callback {
@@ -199,7 +194,7 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             setActive(true);
-            mSession.setMetadata(MusicLibrary.getMediaMetadata(MusicService.this, mediaId));
+            mSession.setMetadata(MusicLibrary.getMetadata(mediaId));
             mPlayback.play(mediaId);
         }
 

@@ -19,6 +19,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
@@ -28,14 +29,13 @@ import android.text.TextUtils;
 
 import com.example.android.uamp.utils.LogHelper;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import static android.media.MediaPlayer.OnCompletionListener;
 import static android.media.MediaPlayer.OnErrorListener;
 import static android.media.MediaPlayer.OnPreparedListener;
 import static android.media.MediaPlayer.OnSeekCompleteListener;
-import static android.media.session.MediaSession.QueueItem;
 
 /**
  * A class that implements local media playback using {@link MediaPlayer}
@@ -150,15 +150,15 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
             mState = PlaybackState.STATE_STOPPED;
             relaxResources(false); // release everything except MediaPlayer
 
-            String source = MusicLibrary.getSongUri(mService, mediaId);
-
             try {
                 createMediaPlayerIfNeeded();
 
                 mState = PlaybackState.STATE_BUFFERING;
 
                 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mMediaPlayer.setDataSource(source);
+                try (AssetFileDescriptor fd = MusicLibrary.getSongUri(mService, mediaId)) {
+                    mMediaPlayer.setDataSource(fd.getFileDescriptor());
+                }
 
                 // Starts preparing the media player in the background. When
                 // it's done, it will call our OnPreparedListener (that is,

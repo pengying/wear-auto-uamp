@@ -23,6 +23,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -31,7 +33,6 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 
 import com.example.android.uamp.ui.MusicPlayerActivity;
-import com.example.android.uamp.utils.BitmapHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.ResourceHelper;
 
@@ -185,10 +186,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private PendingIntent createContentIntent(MediaDescription description) {
         Intent openUI = new Intent(mService, MusicPlayerActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        openUI.putExtra(MusicPlayerActivity.EXTRA_START_FULLSCREEN, true);
-        if (description != null) {
-            openUI.putExtra(MusicPlayerActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, description);
-        }
         return PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
     }
@@ -257,12 +254,14 @@ public class MediaNotificationManager extends BroadcastReceiver {
         }
 
         MediaDescription description = mMetadata.getDescription();
+        Bitmap albumArt = BitmapFactory.decodeResource(mService.getResources(),
+                MusicLibrary.getAlbumArtRes(description.getMediaId()));
 
         notificationBuilder
                 .setStyle(new Notification.MediaStyle()
-                    .setShowActionsInCompactView(
+                .setShowActionsInCompactView(
                         new int[]{playPauseButtonPosition})  // show only play/pause in compact view
-                    .setMediaSession(mSessionToken))
+                .setMediaSession(mSessionToken))
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -270,8 +269,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
-                .setLargeIcon(BitmapHelper.fetchBitmapFromAsset(mService, description.getIconUri().toString()));
-
+                .setLargeIcon(albumArt);
         setNotificationPlaybackState(notificationBuilder);
         return notificationBuilder.build();
     }
