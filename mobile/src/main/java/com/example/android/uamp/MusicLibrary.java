@@ -16,55 +16,59 @@
 
 package com.example.android.uamp;
 
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class MusicLibrary {
 
-    private static final String SONGS_BASE_DIR = "songs";
-
     public static String getRoot() {
         return "";
     }
 
     private static final HashMap<String, MediaMetadata> music = new HashMap<>();
-    private static final HashMap<String, Integer> albums = new HashMap<>();
+    private static final HashMap<String, Integer> albumRes = new HashMap<>();
+    private static final HashMap<String, Integer> musicRes = new HashMap<>();
     static {
         createMediaMetadata("Jazz_In_Paris", "Jazz in Paris",
                 "Media Right Productions", "Jazz & Blues", "Jazz", 103,
-                R.drawable.album_jazz_blues);
+                R.raw.jazz_in_paris, R.drawable.album_jazz_blues);
         createMediaMetadata("The_Coldest_Shoulder",
                 "The Coldest Shoulder", "The 126ers", "Youtube Audio Library Rock 2", "Rock", 160,
-                R.drawable.album_youtube_audio_library_rock_2);
+                R.raw.the_coldest_shoulder, R.drawable.album_youtube_audio_library_rock_2);
     }
 
-    public static AssetFileDescriptor getSongUri(Context ctx, String mediaId) {
-        AssetManager assetManager = ctx.getAssets();
-        AssetFileDescriptor fd = null;
-        try {
-            fd = assetManager.openFd(SONGS_BASE_DIR + File.separator + mediaId + ".mp3");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return fd;
+//    public static Uri getSongUri(String mediaId) {
+//        return Uri.parse("http://storage.googleapis.com/automotive-media/" + mediaId + ".mp3");
+//    }
+
+    public static String getSongUri(String mediaId) {
+        return "android.resource://" + BuildConfig.APPLICATION_ID + "/" + getMusicRes(mediaId);
+//        AssetManager assetManager = ctx.getAssets();
+//        AssetFileDescriptor fd = null;
+//        try {
+//            fd = assetManager.openFd(SONGS_BASE_DIR + "/" + mediaId + ".mp3");
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//        LogHelper.i("MusicLibrary", "fd for "+mediaId+" is " + fd.getDeclaredLength() + " bytes");
+//        return fd;
     }
 
     private static String getAlbumArtUri(int albumArtResId) {
         return "android.resource://" + BuildConfig.APPLICATION_ID + "/" + albumArtResId;
     }
 
-    public static int getAlbumArtRes(String mediaId) {
-        return albums.containsKey(mediaId) ? albums.get(mediaId) : 0;
+    public static int getMusicRes(String mediaId) {
+        return musicRes.containsKey(mediaId) ? musicRes.get(mediaId) : 0;
+    }
+
+    public static int getAlbumRes(String mediaId) {
+        return albumRes.containsKey(mediaId) ? albumRes.get(mediaId) : 0;
     }
 
     public static List<MediaBrowser.MediaItem> getMediaItems() {
@@ -89,7 +93,7 @@ public class MusicLibrary {
         return result;
     }
 
-    private static void createMediaMetadata(String mediaId, String title, String artist, String album, String genre, long duration, int albumArtResId) {
+    private static void createMediaMetadata(String mediaId, String title, String artist, String album, String genre, long duration, int musicResId, int albumArtResId) {
         music.put(mediaId,
                 new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, mediaId)
@@ -101,7 +105,8 @@ public class MusicLibrary {
                 .putString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, getAlbumArtUri(albumArtResId))
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                 .build());
-        albums.put(mediaId, albumArtResId);
+        albumRes.put(mediaId, albumArtResId);
+        musicRes.put(mediaId, musicResId);
     }
 
 }

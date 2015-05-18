@@ -255,7 +255,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         MediaDescription description = mMetadata.getDescription();
         Bitmap albumArt = BitmapFactory.decodeResource(mService.getResources(),
-                MusicLibrary.getAlbumArtRes(description.getMediaId()));
+                MusicLibrary.getAlbumRes(description.getMediaId()));
 
         notificationBuilder
                 .setStyle(new Notification.MediaStyle()

@@ -16,8 +16,6 @@
 
 package com.example.android.uamp;
 
- import android.app.PendingIntent;
- import android.content.Context;
  import android.content.Intent;
  import android.media.browse.MediaBrowser.MediaItem;
  import android.media.session.MediaSession;
@@ -25,82 +23,14 @@ package com.example.android.uamp;
  import android.os.Bundle;
  import android.os.Handler;
  import android.os.Message;
- import android.os.SystemClock;
  import android.service.media.MediaBrowserService;
 
- import com.example.android.uamp.ui.MusicPlayerActivity;
  import com.example.android.uamp.utils.LogHelper;
 
  import java.lang.ref.WeakReference;
  import java.util.List;
 
-/**
- * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
- * client, through the onGetRoot and onLoadChildren methods. It also creates a MediaSession and
- * exposes it through its MediaSession.Token, which allows the client to create a MediaController
- * that connects to and send control commands to the MediaSession remotely. This is useful for
- * user interfaces that need to interact with your media session, like Android Auto. You can
- * (should) also use the same service from your app's UI, which gives a seamless playback
- * experience to the user.
- *
- * To implement a MediaBrowserService, you need to:
- *
- * <ul>
- *
- * <li> Extend {@link android.service.media.MediaBrowserService}, implementing the media browsing
- *      related methods {@link android.service.media.MediaBrowserService#onGetRoot} and
- *      {@link android.service.media.MediaBrowserService#onLoadChildren};
- * <li> In onCreate, start a new {@link android.media.session.MediaSession} and notify its parent
- *      with the session's token {@link android.service.media.MediaBrowserService#setSessionToken};
- *
- * <li> Set a callback on the
- *      {@link android.media.session.MediaSession#setCallback(android.media.session.MediaSession.Callback)}.
- *      The callback will receive all the user's actions, like play, pause, etc;
- *
- * <li> Handle all the actual music playing using any method your app prefers (for example,
- *      {@link android.media.MediaPlayer})
- *
- * <li> Update playbackState, "now playing" metadata and queue, using MediaSession proper methods
- *      {@link android.media.session.MediaSession#setPlaybackState(android.media.session.PlaybackState)}
- *      {@link android.media.session.MediaSession#setMetadata(android.media.MediaMetadata)} and
- *      {@link android.media.session.MediaSession#setQueue(java.util.List)})
- *
- * <li> Declare and export the service in AndroidManifest with an intent receiver for the action
- *      android.media.browse.MediaBrowserService
- *
- * </ul>
- *
- * To make your app compatible with Android Auto, you also need to:
- *
- * <ul>
- *
- * <li> Declare a meta-data tag in AndroidManifest.xml linking to a xml resource
- *      with a &lt;automotiveApp&gt; root element. For a media app, this must include
- *      an &lt;uses name="media"/&gt; element as a child.
- *      For example, in AndroidManifest.xml:
- *          &lt;meta-data android:name="com.google.android.gms.car.application"
- *              android:resource="@xml/automotive_app_desc"/&gt;
- *      And in res/values/automotive_app_desc.xml:
- *          &lt;automotiveApp&gt;
- *              &lt;uses name="media"/&gt;
- *          &lt;/automotiveApp&gt;
- *
- * </ul>
-
- * @see <a href="README.md">README.md</a> for more details.
- *
- */
 public class MusicService extends MediaBrowserService implements PlaybackManager.Callback {
-
-    // The action of the incoming Intent indicating that it contains a command
-    // to be executed (see {@link #onStartCommand})
-    public static final String ACTION_CMD = "com.example.android.uamp.ACTION_CMD";
-    // The key in the extras of the incoming Intent indicating the command that
-    // should be executed (see {@link #onStartCommand})
-    public static final String CMD_NAME = "CMD_NAME";
-    // A value of a CMD_NAME key in the extras of the incoming Intent that
-    // indicates that the music playback should be paused (see {@link #onStartCommand})
-    public static final String CMD_PAUSE = "CMD_PAUSE";
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
@@ -128,20 +58,10 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback());
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS |
-            MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+                MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mPlayback = new PlaybackManager(this);
-        mPlayback.setState(PlaybackState.STATE_NONE);
         mPlayback.setCallback(this);
-        mPlayback.start();
-
-        Context context = getApplicationContext();
-        Intent intent = new Intent(context, MusicPlayerActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(context, 99 /*request code*/,
-                intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mSession.setSessionActivity(pi);
-
-        updatePlaybackState(null);
 
         mMediaNotificationManager = new MediaNotificationManager(this);
     }
@@ -167,7 +87,7 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
     public void onDestroy() {
         LogHelper.d(TAG, "onDestroy");
         // Service is being killed, so make sure we release our resources
-        setStopped(null);
+        stopPlaying();
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         // Always release the MediaSession to clean up resources
@@ -187,11 +107,6 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
 
     private final class MediaSessionCallback extends MediaSession.Callback {
         @Override
-        public void onSeekTo(long position) {
-            mPlayback.seekTo((int) position);
-        }
-
-        @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             setActive(true);
             mSession.setMetadata(MusicLibrary.getMetadata(mediaId));
@@ -205,7 +120,7 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
 
         @Override
         public void onStop() {
-            setStopped(null);
+            stopPlaying();
         }
 
         @Override
@@ -245,13 +160,11 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
     /**
      * Handle a request to stop music
      */
-    private void setStopped(String withError) {
+    private void stopPlaying() {
         mPlayback.stop(true);
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-
-        updatePlaybackState(withError);
 
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
@@ -259,70 +172,21 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
     }
 
     /**
-     * Update the current media player state, optionally showing an error message.
-     *
-     * @param error if not null, error message to present to the user.
-     */
-    private void updatePlaybackState(String error) {
-        LogHelper.d(TAG, "updatePlaybackState, playback state=" + mPlayback.getState());
-        long position = mPlayback.getCurrentStreamPosition();
-
-        PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
-                .setActions(getAvailableActions());
-
-        int state = mPlayback.getState();
-
-        // If there is an error message, send it to the playback state:
-        if (error != null) {
-            // Error states are really only supposed to be used for errors that cause playback to
-            // stop unexpectedly and persist until the user takes action to fix it.
-            stateBuilder.setErrorMessage(error);
-            state = PlaybackState.STATE_ERROR;
-        }
-        stateBuilder.setState(state, position, 1.0f, SystemClock.elapsedRealtime());
-
-        mSession.setPlaybackState(stateBuilder.build());
-
-        if (state == PlaybackState.STATE_PLAYING || state == PlaybackState.STATE_PAUSED) {
-            mMediaNotificationManager.startNotification();
-        }
-    }
-
-    private long getAvailableActions() {
-        long actions = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID |
-                PlaybackState.ACTION_PLAY_FROM_SEARCH;
-        if (mPlayback.isPlaying()) {
-            actions |= PlaybackState.ACTION_PAUSE;
-        }
-        return actions;
-    }
-
-    /**
      * Implementation of the PlaybackManager.Callback interface
      */
     @Override
     public void onCompletion() {
-        // If there is nothing to play, we stop and release the resources:
-        setStopped(null);
+        stopPlaying();
     }
 
     @Override
-    public void onPlaybackStatusChanged(int state) {
-        updatePlaybackState(null);
-    }
+    public void onPlaybackStatusChanged(PlaybackState state) {
+        mSession.setPlaybackState(state);
 
-    @Override
-    public void onError(String error) {
-        updatePlaybackState(error);
-    }
-
-    @Override
-    public void onMetadataChanged(String mediaId) {
-        LogHelper.d(TAG, "onMetadataChanged", mediaId);
-//        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueue(mediaId, mMusicProvider);
-//        mCurrentIndexOnQueue = ;
-//        mPlayingQueue = queue;
-//        updateMetadata();
+        if (state.getState() == PlaybackState.STATE_PLAYING ||
+                state.getState() == PlaybackState.STATE_PAUSED) {
+            mMediaNotificationManager.startNotification();
+        }
     }
 
     /**

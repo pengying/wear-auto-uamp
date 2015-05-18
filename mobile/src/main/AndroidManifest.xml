@@ -19,6 +19,7 @@
     package="com.example.android.uamp" >
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!--<uses-feature-->
         <!--android:name="android.software.leanback"-->
