@@ -22,13 +22,9 @@ package com.example.android.uamp;
  import android.os.Bundle;
  import android.service.media.MediaBrowserService;
 
- import com.example.android.uamp.utils.LogHelper;
-
  import java.util.List;
 
 public class MusicService extends MediaBrowserService implements PlaybackManager.Callback {
-
-    private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
     private MediaSession mSession;
     private MediaNotificationManager mMediaNotificationManager;
@@ -41,7 +37,6 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
     @Override
     public void onCreate() {
         super.onCreate();
-        LogHelper.d(TAG, "onCreate");
 
         // Start a new MediaSession
         mSession = new MediaSession(this, "MusicService");
@@ -62,7 +57,6 @@ public class MusicService extends MediaBrowserService implements PlaybackManager
      */
     @Override
     public void onDestroy() {
-        LogHelper.d(TAG, "onDestroy");
         // Service is being killed, so make sure we release our resources
         stopPlaying();
 

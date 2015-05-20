@@ -22,9 +22,6 @@ import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.text.TextUtils;
-
-import com.example.android.uamp.utils.LogHelper;
 
 import static android.media.MediaPlayer.OnCompletionListener;
 
@@ -33,8 +30,6 @@ import static android.media.MediaPlayer.OnCompletionListener;
  */
 public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnSeekCompleteListener {
-
-    private static final String TAG = LogHelper.makeLogTag(PlaybackManager.class);
 
     // The volume we set the media player to when we lose audio focus, but are
     // allowed to reduce the volume instead of stopping playback.
@@ -133,7 +128,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      * Try to get the system audio focus.
      */
     private void tryToGetAudioFocus() {
-        LogHelper.d(TAG, "tryToGetAudioFocus");
         if (mAudioFocus != AUDIO_FOCUSED) {
             int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN);
@@ -147,7 +141,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      * Give up the audio focus.
      */
     private void giveUpAudioFocus() {
-        LogHelper.d(TAG, "giveUpAudioFocus");
         if (mAudioFocus == AUDIO_FOCUSED) {
             if (mAudioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
@@ -166,7 +159,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      * you are sure this is the case.
      */
     private void configMediaPlayerState() {
-        LogHelper.d(TAG, "configMediaPlayerState. mAudioFocus=", mAudioFocus);
         if (mAudioFocus == AUDIO_NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck, we have to pause,
             if (mState == PlaybackState.STATE_PLAYING) {
@@ -183,8 +175,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-                    LogHelper.d(TAG,"configMediaPlayerState startMediaPlayer. seeking to ",
-                        mCurrentPosition);
                     if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
                         mMediaPlayer.start();
                         mState = PlaybackState.STATE_PLAYING;
@@ -205,7 +195,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      */
     @Override
     public void onAudioFocusChange(int focusChange) {
-        LogHelper.d(TAG, "onAudioFocusChange. focusChange=", focusChange);
         if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
             // We have gained focus:
             mAudioFocus = AUDIO_FOCUSED;
@@ -225,8 +214,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
                 // we were playing, so that we can resume playback once we get the focus back.
                 mPlayOnFocusGain = true;
             }
-        } else {
-            LogHelper.e(TAG, "onAudioFocusChange: Ignoring unsupported focusChange: ", focusChange);
         }
         configMediaPlayerState();
     }
@@ -238,7 +225,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      */
     @Override
     public void onCompletion(MediaPlayer player) {
-        LogHelper.d(TAG, "onCompletion from MediaPlayer");
         stop();
     }
 
@@ -258,8 +244,6 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
      *            be released or not
      */
     private void relaxResources(boolean releaseMediaPlayer) {
-        LogHelper.d(TAG, "relaxResources. releaseMediaPlayer=", releaseMediaPlayer);
-
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mMediaPlayer != null) {
             mMediaPlayer.reset();

@@ -38,7 +38,6 @@ import android.widget.Toast;
 import com.example.android.uamp.MusicLibrary;
 import com.example.android.uamp.PlaybackManager;
 import com.example.android.uamp.R;
-import com.example.android.uamp.utils.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,8 +52,6 @@ import java.util.List;
  */
 public class MusicPlayerActivity extends ActionBarActivity {
 
-    private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
-
     private PlaybackManager mPlaybackManager;
     private BrowseAdapter mBrowserAdapter;
     private ImageButton mPlayPause;
@@ -67,11 +64,17 @@ public class MusicPlayerActivity extends ActionBarActivity {
     private MediaMetadata mCurrentMetadata;
     private PlaybackState mCurrentState;
 
+    private MediaBrowser mMediaBrowser;
+
     private MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-//                    MusicPlayerActivity.this.onMediaBrowserConnected();
+                    mMediaBrowser.subscribe(mMediaBrowser.getRoot(), mSubscriptionCallback);
+                    MediaController mediaController = new MediaController(
+                            MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
+                    mediaController.registerCallback(mMediaControllerCallback);
+                    setMediaController(mediaController);
                 }
             };
 
@@ -175,13 +178,6 @@ public class MusicPlayerActivity extends ActionBarActivity {
         mBrowserAdapter.notifyDataSetChanged();
 
     }
-
-//    public void onMediaBrowserConnected() {
-//        mMediaBrowser.subscribe(mMediaBrowser.getRoot(), mSubscriptionCallback);
-//        MediaController mediaController = new MediaController(this, mMediaBrowser.getSessionToken());
-//        mediaController.registerCallback(mMediaControllerCallback);
-//        setMediaController(mediaController);
-//    }
 
     @Override
     public void onStop() {
