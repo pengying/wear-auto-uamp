@@ -16,7 +16,6 @@
 package com.example.android.uamp.ui;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
@@ -36,7 +35,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.uamp.MusicService;
+import com.example.android.uamp.MusicLibrary;
+import com.example.android.uamp.PlaybackManager;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -55,20 +55,23 @@ public class MusicPlayerActivity extends ActionBarActivity {
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
 
-    private MediaBrowser mMediaBrowser;
+    private PlaybackManager mPlaybackManager;
     private BrowseAdapter mBrowserAdapter;
     private ImageButton mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
     private ImageView mAlbumArt;
+    private ViewGroup mPlaybackControls;
     private String mArtUrl;
+
+    private MediaMetadata mCurrentMetadata;
+    private PlaybackState mCurrentState;
 
     private MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
                 @Override
                 public void onConnected() {
-                    LogHelper.d(TAG, "onConnected");
-                    MusicPlayerActivity.this.onMediaBrowserConnected();
+//                    MusicPlayerActivity.this.onMediaBrowserConnected();
                 }
             };
 
@@ -81,18 +84,15 @@ public class MusicPlayerActivity extends ActionBarActivity {
             if (metadata == null) {
                 return;
             }
-            LogHelper.d(TAG, "Received metadata change to media ",
-                    metadata.getDescription().getMediaId());
-            mBrowserAdapter.notifyDataSetChanged();
             updatePlaybackControlsMetadata(metadata);
+            mBrowserAdapter.notifyDataSetChanged();
         }
 
         @Override
         public void onPlaybackStateChanged(PlaybackState state) {
             super.onPlaybackStateChanged(state);
-            LogHelper.d(TAG, "Received state change: ", state);
-            mBrowserAdapter.notifyDataSetChanged();
             updatePlaybackControls(state);
+            mBrowserAdapter.notifyDataSetChanged();
         }
     };
 
@@ -100,34 +100,22 @@ public class MusicPlayerActivity extends ActionBarActivity {
         new MediaBrowser.SubscriptionCallback() {
             @Override
             public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
-                try {
-                    LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
-                            "  count=" + children.size());
-                    mBrowserAdapter.clear();
-                    for (MediaBrowser.MediaItem item : children) {
-                        mBrowserAdapter.add(item);
-                    }
-                    mBrowserAdapter.notifyDataSetChanged();
-                } catch (Throwable t) {
-                    LogHelper.e(TAG, "Error on childrenloaded", t);
-                }
+                mBrowserAdapter.clear();
+                mBrowserAdapter.addAll(children);
+                mBrowserAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onError(String id) {
-                LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
                 Toast.makeText(MusicPlayerActivity.this, R.string.error_loading_media, Toast.LENGTH_LONG).show();
             }
         };
 
     public void onMediaItemSelected(MediaBrowser.MediaItem item) {
-        LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
         if (item.isPlayable()) {
-            getMediaController().getTransportControls().playFromMediaId(item.getMediaId(), null);
-        } else if (item.isBrowsable()) {
-            LogHelper.w(TAG, "Ignoring MediaItem that is not playable." +
-                    "In a real world app, you should navigate into the browsable MediaItem. ",
-                    "mediaId=", item.getMediaId());
+            mPlaybackManager.play(item.getMediaId());
+            updatePlaybackControlsMetadata(MusicLibrary.getMetadata(item.getMediaId()));
+//            getMediaController().getTransportControls().playFromMediaId(item.getMediaId(), null);
         }
     }
 
@@ -135,12 +123,20 @@ public class MusicPlayerActivity extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LogHelper.d(TAG, "Activity onCreate");
         setContentView(R.layout.activity_player);
         setTitle(getString(R.string.app_name));
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         // Music list configuration:
+        mPlaybackManager = new PlaybackManager(this);
+        mPlaybackManager.setCallback(new PlaybackManager.Callback() {
+            @Override
+            public void onPlaybackStatusChanged(PlaybackState state) {
+                mBrowserAdapter.notifyDataSetChanged();
+                updatePlaybackControls(state);
+            }
+        });
+
         mBrowserAdapter = new BrowseAdapter(this);
 
         ListView listView = (ListView) findViewById(R.id.list_view);
@@ -154,6 +150,7 @@ public class MusicPlayerActivity extends ActionBarActivity {
         });
 
         // Playback controls configuration:
+        mPlaybackControls = (ViewGroup) findViewById(R.id.playback_controls);
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(mPlaybackButtonListener);
@@ -162,9 +159,9 @@ public class MusicPlayerActivity extends ActionBarActivity {
         mSubtitle = (TextView) findViewById(R.id.artist);
         mAlbumArt = (ImageView) findViewById(R.id.album_art);
 
-        // Connect to the media browser:
-        mMediaBrowser = new MediaBrowser(this,
-                new ComponentName(this, MusicService.class), mConnectionCallback, null);
+//        // Connect to the media browser:
+//        mMediaBrowser = new MediaBrowser(this,
+//                new ComponentName(this, MusicService.class), mConnectionCallback, null);
 
     }
 
@@ -172,38 +169,47 @@ public class MusicPlayerActivity extends ActionBarActivity {
     @Override
     public void onStart() {
         super.onStart();
-        mMediaBrowser.connect();
+//        mMediaBrowser.connect();
+        mBrowserAdapter.clear();
+        mBrowserAdapter.addAll(MusicLibrary.getMediaItems());
+        mBrowserAdapter.notifyDataSetChanged();
+
     }
 
-    public void onMediaBrowserConnected() {
-        mMediaBrowser.subscribe(mMediaBrowser.getRoot(), mSubscriptionCallback);
-        MediaController mediaController = new MediaController(this, mMediaBrowser.getSessionToken());
-        mediaController.registerCallback(mMediaControllerCallback);
-        setMediaController(mediaController);
-    }
+//    public void onMediaBrowserConnected() {
+//        mMediaBrowser.subscribe(mMediaBrowser.getRoot(), mSubscriptionCallback);
+//        MediaController mediaController = new MediaController(this, mMediaBrowser.getSessionToken());
+//        mediaController.registerCallback(mMediaControllerCallback);
+//        setMediaController(mediaController);
+//    }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
-            mMediaBrowser.unsubscribe(mMediaBrowser.getRoot());
-            mMediaBrowser.disconnect();
-        }
-        if (getMediaController() != null) {
-            getMediaController().unregisterCallback(mMediaControllerCallback);
-        }
+        mPlaybackManager.stop();
+//        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
+//            mMediaBrowser.unsubscribe(mMediaBrowser.getRoot());
+//            mMediaBrowser.disconnect();
+//        }
+//        if (getMediaController() != null) {
+//            getMediaController().unregisterCallback(mMediaControllerCallback);
+//        }
     }
 
     private void updatePlaybackControls(PlaybackState state) {
+        mCurrentState = state;
         boolean enablePlay = false;
         switch (state.getState()) {
             case PlaybackState.STATE_PAUSED:
             case PlaybackState.STATE_STOPPED:
+                mPlaybackControls.setVisibility(View.VISIBLE);
                 enablePlay = true;
                 break;
             case PlaybackState.STATE_ERROR:
-                LogHelper.e(TAG, "error playbackstate: ", state.getErrorMessage());
                 Toast.makeText(this, state.getErrorMessage(), Toast.LENGTH_LONG).show();
+                break;
+            case PlaybackState.STATE_NONE:
+                mPlaybackControls.setVisibility(View.GONE);
                 break;
         }
 
@@ -215,6 +221,7 @@ public class MusicPlayerActivity extends ActionBarActivity {
     }
 
     private void updatePlaybackControlsMetadata(MediaMetadata metadata) {
+        mCurrentMetadata = metadata;
         mTitle.setText(metadata.getDescription().getTitle());
         mSubtitle.setText(metadata.getDescription().getSubtitle());
         String artUrl = metadata.getDescription().getIconUri().toString();
@@ -222,10 +229,11 @@ public class MusicPlayerActivity extends ActionBarActivity {
             mAlbumArt.setImageURI(Uri.parse(artUrl));
             mArtUrl = artUrl;
         }
+        mBrowserAdapter.notifyDataSetChanged();
     }
 
     // An adapter for showing the list of browsed MediaItem's
-    private static class BrowseAdapter extends ArrayAdapter<MediaBrowser.MediaItem> {
+    private class BrowseAdapter extends ArrayAdapter<MediaBrowser.MediaItem> {
 
         public BrowseAdapter(Activity context) {
             super(context, R.layout.media_list_item, new ArrayList<MediaBrowser.MediaItem>());
@@ -234,47 +242,52 @@ public class MusicPlayerActivity extends ActionBarActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             MediaBrowser.MediaItem item = getItem(position);
-            int state = MediaItemViewHolder.STATE_NONE;
+            int itemState = MediaItemViewHolder.STATE_NONE;
             if (item.isPlayable()) {
-                state = MediaItemViewHolder.STATE_PLAYABLE;
-                MediaController controller = ((Activity) getContext()).getMediaController();
-                if (controller != null && controller.getMetadata() != null) {
-                    String currentPlaying = controller.getMetadata().getDescription().getMediaId();
-                    String mediaId = item.getDescription().getMediaId();
-                    if (currentPlaying != null && currentPlaying.equals(mediaId)) {
-                        if (controller.getPlaybackState().getState() ==
-                                PlaybackState.STATE_PLAYING) {
-                            state = MediaItemViewHolder.STATE_PLAYING;
-                        } else if (controller.getPlaybackState().getState() !=
-                                PlaybackState.STATE_ERROR) {
-                            state = MediaItemViewHolder.STATE_PAUSED;
-                        }
+                String itemMediaId = item.getDescription().getMediaId();
+                int playbackState = PlaybackState.STATE_NONE;
+                if (mCurrentState != null) {
+                    playbackState = mCurrentState.getState();
+                }
+                if (mCurrentMetadata != null &&
+                        itemMediaId.equals(mCurrentMetadata.getDescription().getMediaId())) {
+                    if (playbackState == PlaybackState.STATE_PLAYING ||
+                        playbackState == PlaybackState.STATE_BUFFERING) {
+                        itemState = MediaItemViewHolder.STATE_PLAYING;
+                    } else if (playbackState != PlaybackState.STATE_ERROR) {
+                        itemState = MediaItemViewHolder.STATE_PAUSED;
                     }
                 }
             }
             return MediaItemViewHolder.setupView((Activity) getContext(), convertView, parent,
-                item.getDescription(), state);
+                item.getDescription(), itemState);
         }
     }
 
     private View.OnClickListener mPlaybackButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            PlaybackState stateObj = getMediaController().getPlaybackState();
-            final int state = stateObj == null ?
-                    PlaybackState.STATE_NONE : stateObj.getState();
-            LogHelper.d(TAG, "Button pressed, in state " + state);
+//            PlaybackState stateObj = getMediaController().getPlaybackState();
+            final int state = mCurrentState == null ?
+                    PlaybackState.STATE_NONE : mCurrentState.getState();
             switch (v.getId()) {
                 case R.id.play_pause:
-                    LogHelper.d(TAG, "Play button pressed, in state " + state);
                     if (state == PlaybackState.STATE_PAUSED ||
                             state == PlaybackState.STATE_STOPPED ||
                             state == PlaybackState.STATE_NONE) {
-                        getMediaController().getTransportControls().play();
+
+                        if (mCurrentMetadata == null) {
+                            String mediaId = MusicLibrary.getMediaItems().get(0).getMediaId();
+                            mCurrentMetadata = MusicLibrary.getMetadata(mediaId);
+                            updatePlaybackControlsMetadata(mCurrentMetadata);
+                        }
+                        mPlaybackManager.play(mCurrentMetadata.getDescription().getMediaId());
+//                        getMediaController().getTransportControls().play();
                     } else if (state == PlaybackState.STATE_PLAYING ||
                             state == PlaybackState.STATE_BUFFERING ||
                             state == PlaybackState.STATE_CONNECTING) {
-                        getMediaController().getTransportControls().pause();
+                        mPlaybackManager.pause();
+//                        getMediaController().getTransportControls().pause();
                     }
                     break;
             }
