@@ -74,11 +74,8 @@ public class PlaybackManager implements AudioManager.OnAudioFocusChangeListener,
                 mMediaPlayer.getCurrentPosition() : mCurrentPosition;
     }
 
-    public int getState() {
-        return mState;
-    }
-
     public void play(String mediaId) {
+        mCurrentMediaId = mediaId;
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
 
